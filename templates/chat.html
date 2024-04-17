@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ChatbotBuilderBot</title>
+    <!-- Websockets -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+    integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
+    crossorigin="anonymous"></script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- socketio -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"
+        integrity="sha512-zoJXRvW2gC8Z0Xo3lBbao5+AS3g6YWr5ztKqaicua11xHo+AvE1b0lT9ODgrHTmNUxeCw0Ry4BGRYZfXu70weg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row mt-5">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div id="countdown" class="h5"></div>
+                        </div>
+                    </div>
+                    <div class="card-body chat-container" id="chat-container-id">
+                        <div id="chat-area" class="animate__animated animate__fadeIn">
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <form id="chat-form">
+                            <div class="input-group mb-3">
+                            </div>
+                            <div class="input-group">
+                                <input type="text" id="user-input" class="form-control"
+                                    placeholder="Type your message..." required>
+                                <button type="submit" class="btn btn-primary">Send</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" id="sessionTable">
+            </div>
+        </div>
+    </div>
+
+</html>
+<script>
+    $(document).ready(function () {
+        var socket = io();
+
+        $('#chat-form').submit(function (e) {
+            e.preventDefault();
+            let userMessage = $('#user-input').val();
+            addMessageToChat(userMessage, "user");
+            socket.emit('message_from_client', { text: userMessage, sender: "user" });
+            $('#user-input').val('');
+        });
+
+        socket.on('message_from_server', function (msg) {
+            addMessageToChat(msg.text, msg.sender);
+        });
+
+        function addMessageToChat(message, sender) {
+            const messageType = sender === "user" ? "end" : "text-start";
+            const messageClass = sender === "user" ? "bg-primary text-white" : "bg-light";
+            const chatMessage = `
+        <div class="d-flex justify-content-${messageType} mb-3 animate__animated animate__fadeIn">
+          <div class="msg_container ${messageClass}">${message}</div>
+        </div>`;
+            $("#chat-area").append(chatMessage);
+            $("#chat-container-id").animate({ scrollTop: $("#chat-container-id").prop("scrollHeight") }, 1000);
+        }
+    });
+</script>
+
+</body>
